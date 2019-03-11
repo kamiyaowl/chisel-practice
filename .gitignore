@@ -1,0 +1,4 @@
+project/
+target/
+ensime-langserver.log
+pc.stdout.log
