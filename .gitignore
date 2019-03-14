@@ -7,3 +7,5 @@ pc.stdout.log
 ./*.v
 .idea/
 test_run_dir/
+*.vcd
+*.out
