@@ -1,13 +1,13 @@
 import chisel3._
 import chisel3.util._
 
-class Passthrough extends Module {
+class Passthrough(width: Int) extends Module {
     val io = IO(new Bundle {
-        val in = Input(UInt(8.W))
-        val out = Output(UInt(8.W))
+        val in = Input(UInt(width.W))
+        val out = Output(UInt(width.W))
     })
     io.out := io.in
 }
 object Passthrough extends App {
-  chisel3.Driver.execute(args,()=>new Passthrough)
+  chisel3.Driver.execute(args,()=>new Passthrough(8))
 }

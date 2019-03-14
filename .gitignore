@@ -2,8 +2,8 @@ project/
 target/
 ensime-langserver.log
 pc.stdout.log
-*.anno
-*.fir
-*.v
+./*.anno
+./*.fir
+./*.v
 .idea/
 test_run_dir/
