@@ -11,4 +11,14 @@ lazy val root = (project in file("."))
     libraryDependencies += scalaTest % Test
   )
 
+scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-language:reflectiveCalls")
+val chiselGroupId = "edu.berkeley.cs"
+libraryDependencies ++= Seq(
+  chiselGroupId %% "chisel3" % "3.0.+",
+  chiselGroupId %% "chisel-iotesters" % "1.1.+"
+)
+resolvers ++= Seq(
+  Resolver.sonatypeRepo("snapshots"),
+  Resolver.sonatypeRepo("releases")
+)
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
