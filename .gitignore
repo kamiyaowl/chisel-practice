@@ -5,3 +5,5 @@ pc.stdout.log
 *.anno
 *.fir
 *.v
+.idea/
+test_run_dir/
