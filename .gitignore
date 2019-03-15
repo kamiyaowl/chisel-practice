@@ -9,3 +9,4 @@ pc.stdout.log
 test_run_dir/
 *.vcd
 *.out
+*.DS_Store
