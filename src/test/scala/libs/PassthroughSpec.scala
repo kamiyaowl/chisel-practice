@@ -1,4 +1,4 @@
-package libs
+package peripheral
 
 import org.scalatest._
 import chisel3._
