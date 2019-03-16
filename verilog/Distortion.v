@@ -23,8 +23,10 @@ module Distortion( // @[:@3.2]
   reg [31:0] _RAND_0;
   reg [31:0] abs_in; // @[Distortion.scala 16:23:@9.4]
   reg [31:0] _RAND_1;
-  reg [31:0] _T_34; // @[Distortion.scala 25:22:@35.6]
-  reg [31:0] _RAND_2;
+  reg [32:0] _T_34; // @[Distortion.scala 23:22:@32.6]
+  reg [63:0] _RAND_2;
+  reg [31:0] _T_36; // @[Distortion.scala 25:22:@37.6]
+  reg [31:0] _RAND_3;
   wire  _T_11; // @[Distortion.scala 17:24:@10.4]
   wire [32:0] _T_13; // @[Distortion.scala 18:30:@12.4]
   wire [31:0] _T_14; // @[Distortion.scala 18:30:@13.4]
@@ -41,10 +43,10 @@ module Distortion( // @[:@3.2]
   wire [33:0] _T_25; // @[Distortion.scala 22:25:@25.6]
   wire [32:0] _T_26; // @[Distortion.scala 22:25:@26.6]
   wire [32:0] _T_27; // @[Distortion.scala 22:25:@27.6]
-  wire [33:0] _T_29; // @[Distortion.scala 23:32:@28.6]
-  wire [32:0] _T_30; // @[Distortion.scala 23:32:@29.6]
-  wire [32:0] _T_31; // @[Distortion.scala 23:32:@30.6]
-  wire [32:0] _T_32; // @[Distortion.scala 23:18:@31.6]
+  wire [33:0] _T_29; // @[Distortion.scala 23:40:@28.6]
+  wire [32:0] _T_30; // @[Distortion.scala 23:40:@29.6]
+  wire [32:0] _T_31; // @[Distortion.scala 23:40:@30.6]
+  wire [32:0] _T_32; // @[Distortion.scala 23:26:@31.6]
   wire [32:0] _GEN_0; // @[Distortion.scala 20:48:@20.4]
   wire [31:0] _GEN_2;
   assign _T_11 = $signed(io_in) < $signed(32'sh0); // @[Distortion.scala 17:24:@10.4]
@@ -63,11 +65,11 @@ module Distortion( // @[:@3.2]
   assign _T_25 = $signed(_GEN_1) + $signed(_T_24); // @[Distortion.scala 22:25:@25.6]
   assign _T_26 = _T_25[32:0]; // @[Distortion.scala 22:25:@26.6]
   assign _T_27 = $signed(_T_26); // @[Distortion.scala 22:25:@27.6]
-  assign _T_29 = $signed(33'sh0) - $signed(_T_27); // @[Distortion.scala 23:32:@28.6]
-  assign _T_30 = _T_29[32:0]; // @[Distortion.scala 23:32:@29.6]
-  assign _T_31 = $signed(_T_30); // @[Distortion.scala 23:32:@30.6]
-  assign _T_32 = is_negative ? $signed(_T_31) : $signed(_T_27); // @[Distortion.scala 23:18:@31.6]
-  assign _GEN_0 = _T_20 ? $signed(_T_32) : $signed({{1{_T_34[31]}},_T_34}); // @[Distortion.scala 20:48:@20.4]
+  assign _T_29 = $signed(33'sh0) - $signed(_T_27); // @[Distortion.scala 23:40:@28.6]
+  assign _T_30 = _T_29[32:0]; // @[Distortion.scala 23:40:@29.6]
+  assign _T_31 = $signed(_T_30); // @[Distortion.scala 23:40:@30.6]
+  assign _T_32 = is_negative ? $signed(_T_31) : $signed(_T_27); // @[Distortion.scala 23:26:@31.6]
+  assign _GEN_0 = _T_20 ? $signed(_T_34) : $signed({{1{_T_36[31]}},_T_36}); // @[Distortion.scala 20:48:@20.4]
   assign _GEN_2 = _GEN_0[31:0];
   assign io_out = $signed(_GEN_2);
 `ifdef RANDOMIZE
@@ -85,8 +87,12 @@ module Distortion( // @[:@3.2]
   abs_in = _RAND_1[31:0];
   `endif // RANDOMIZE_REG_INIT
   `ifdef RANDOMIZE_REG_INIT
-  _RAND_2 = {1{$random}};
-  _T_34 = _RAND_2[31:0];
+  _RAND_2 = {2{$random}};
+  _T_34 = _RAND_2[32:0];
+  `endif // RANDOMIZE_REG_INIT
+  `ifdef RANDOMIZE_REG_INIT
+  _RAND_3 = {1{$random}};
+  _T_36 = _RAND_3[31:0];
   `endif // RANDOMIZE_REG_INIT
   end
 `endif // RANDOMIZE
@@ -105,6 +111,11 @@ module Distortion( // @[:@3.2]
         abs_in <= io_in;
       end
     end
-    _T_34 <= io_in;
+    if (is_negative) begin
+      _T_34 <= _T_31;
+    end else begin
+      _T_34 <= _T_27;
+    end
+    _T_36 <= io_in;
   end
 endmodule

@@ -15,7 +15,7 @@ class DistortionSpec extends FlatSpec with Matchers {
                 poke(c.io.in, data_in)
                 poke(c.io.point, data_point)
                 poke(c.io.rate, data_rate)
-                step(1)
+                step(2)
                 println(s"in:${data_in}, point:${data_point} shift:${data_rate} out:${peek(c.io.out)}")
                 if (Math.abs(data_in) <= data_point || data_rate <= 0) {
                   expect(c.io.out, data_in)

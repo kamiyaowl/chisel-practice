@@ -23,7 +23,7 @@ module tb();
     end
 
     always @ (posedge CLK) begin
-        if (RST == 0) begin
+        if (RST == 1) begin
             in_data <= 8'd0;
         end else begin
             in_data <= in_data + 8'd1;
