@@ -8,8 +8,8 @@ class Compressor(width: Int) extends Module {
     val in = Input(SInt(width.W))
     val out = Output(SInt(width.W))
     // params
-    val point = Input(SInt(width.W)) // 歪ませる変化点, 負の数は使わないで
-    val rate = Input(SInt(width.W)) // 傾きのレート(右シフト数)
+    val point = Input(SInt(width.W)) // 歪ませる変化点
+    val rate = Input(SInt(width.W))  // pointより大きい値に対して除算する数値、0,1の場合は無効
 
   })
   val dst = RegInit(0.S)
