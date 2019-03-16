@@ -2,8 +2,8 @@ import Dependencies._
 
 ThisBuild / scalaVersion     := "2.12.8"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "com.example"
-ThisBuild / organizationName := "example"
+ThisBuild / organization     := "kamiyaowl.chisel-practice"
+ThisBuild / organizationName := "kamiyaowl"
 
 lazy val root = (project in file("."))
   .settings(
@@ -12,6 +12,7 @@ lazy val root = (project in file("."))
   )
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-language:reflectiveCalls")
+
 val chiselGroupId = "edu.berkeley.cs"
 libraryDependencies ++= Seq(
   chiselGroupId %% "chisel3" % "3.0.+",
