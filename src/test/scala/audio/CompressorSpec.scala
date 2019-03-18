@@ -9,9 +9,9 @@ class CompressorSpec extends FlatSpec with Matchers {
   "Compressor" should "parametric full test" in {
     val result = Driver(() => new Compressor(32)) {
       c => new PeekPokeTester(c) {
-        (-10000 to 10000) filter(_ % 1000 == 0) foreach { data_in =>
-          (0 to 10000) filter(_ % 1000 == 0) foreach { data_point =>
-            (0 to 100) foreach { data_rate => {
+        (-10000 to 10000) filter(_ % 5000 == 0) foreach { data_in =>
+          (0 to 10000) filter(_ % 5000 == 0) foreach { data_point =>
+            (0 to 100) filter(_ % 50 == 0) foreach { data_rate => {
                 poke(c.io.in, data_in)
                 poke(c.io.point, data_point)
                 poke(c.io.rate, data_rate)

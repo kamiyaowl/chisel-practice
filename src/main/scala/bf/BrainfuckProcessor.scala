@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import scala.math.pow
 
-class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branchStackMemWidth: Int = 8) extends Module {
+class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branchStackMemWidth: Int = 4) extends Module {
   val io = IO(new Bundle {
     // system
     val run = Input(Bool()) // 実行時のトリガ
@@ -13,7 +13,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     val programAddr = Input(UInt(32.W)) // 入力
     val programData = Input(UInt(8.W)) // 入力
     val programValid = Input(Bool()) // 入力内容が有効
-    val programRd = Output(Bool()) // 内容を読んだらtrue
+    val programAck = Output(Bool()) // 内容を読んだらtrue
     // for status
     val pc = Output(UInt(instMemWidth.W)) // program counter
     val inst = Output(UInt(8.W)) // 現在実行中の命令
@@ -35,8 +35,8 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     val stdoutAck = Input(Bool()) // つないだ先が読み出してくれたらtrue
   })
   // output
-  val programRd = RegInit(Bool(), false.B)
-  io.programRd := programRd
+  val programAck = RegInit(Bool(), false.B)
+  io.programAck := programAck
   val halted = RegInit(Bool(), true.B)
   io.halted := halted;
   val stdinReady = RegInit(Bool(), false.B)
@@ -107,6 +107,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
       }
     } .otherwise {
       // 初回の命令はロードされている状態でスタート
+      println(s"bf-processor pc:$pc inst:$inst")
       switch(inst) {
         is(0.U) {
           halted := true.B
@@ -125,7 +126,11 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
         }
         is('>'.U) {
           pc := RegNext(pc + 1.U)
-          inst := instMem.read(pc + 1.U)
+          // TODO: isntMem.readが1cycで終わってない！！！！！！！
+          // NG inst := instMem.read(pc + 1.U)
+          // NG inst := instMem.read(1.U)
+          inst := RegNext('>'.U) //          inst := instMem.read(pc + 1.U)
+
           stackPtr := RegNext(stackPtr + 1.U)
           stackData := RegNext(stackData + 1.U)
         }
@@ -226,10 +231,16 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   }
   // FIFOから読み出してメモリを書き換える
   when(halted && io.program && io.programValid) {
-    programRd := RegNext(true.B)
+    programAck := RegNext(true.B)
     instMem.write(io.programAddr, io.programData)
+    // for debug
+    stdoutData := RegNext(io.programData)
+    stdoutValid := RegNext(true.B)
   } .otherwise {
-    programRd := RegNext(false.B)
+    programAck := RegNext(false.B)
+    // for debug
+    stdoutData := RegNext(0.U)
+    stdoutValid := RegNext(false.B)
   }
 
 }
