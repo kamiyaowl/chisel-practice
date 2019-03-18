@@ -67,12 +67,12 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
 
   // FIFO後処理
   when(stdinAck) { // メイン側はAckが下がるまで連射しない
-    stdinAck := RegNext(false.B)
+    stdinAck := (false.B)
   }
   when(stdoutValid) { // メイン側はvalidが下がるまで次を出力しないので
     when(io.stdoutAck) {
-      stdoutData := RegNext(0.U)
-      stdoutValid := RegNext(false.B)
+      stdoutData := (0.U)
+      stdoutValid := (false.B)
     }
   }
   // メイン制御
@@ -88,22 +88,22 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   when(!halted) {
     when(branchJump) {
       // '[' -> ']'への移動は優先順位が高い
-      pc := RegNext(pc + 1.U)
+      pc := (pc + 1.U)
       inst := instMem.read(pc + 1.U)
       switch(inst) {
         is(0.U) {
           halted := true.B
         }
         is('['.U) {
-          branchJumpNest := RegNext(branchJumpNest + 1.U)
+          branchJumpNest := (branchJumpNest + 1.U)
         }
         is(']'.U) {
           when(branchJumpNest > 0.U) {
-            branchJumpNest := RegNext(branchJumpNest - 1.U)
+            branchJumpNest := (branchJumpNest - 1.U)
           } .otherwise {
             // おわり
-            branchJump := RegNext(false.B)
-            branchJumpNest := RegNext(0.U)
+            branchJump := (false.B)
+            branchJumpNest := (0.U)
           }
         }
       }
@@ -117,127 +117,127 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
         is('!'.U) {
           // リスタート
           // stackPtrは隣にずらすだけでクリアしないのでいつかしぬ
-          branchJump := RegNext(false.B)
-          branchJumpNest := RegNext(0.U)
-          pc := RegNext(0.U)
+          branchJump := (false.B)
+          branchJumpNest := (0.U)
+          pc := (0.U)
           inst := instMem.read(0.U)
-          stackPtr := RegNext(stackPtr + 1.U)
-          stackData := RegNext(stackData + 1.U)
-          branchStackPtr := RegNext(0.U)
-          branchStackData := branchStackMem(0.U) // !!!!便宜上 ptr - 1の値を持たせる
-          stdinPc := RegNext(0.U)
-          stdoutPc := RegNext(0.U)
+          stackPtr := (stackPtr + 1.U)
+          stackData := (stackData + 1.U)
+          branchStackPtr := (0.U)
+          branchStackData := (0.U) // !!!!便宜上 ptr - 1の値を持たせる
+          stdinPc := (0.U)
+          stdoutPc := (0.U)
         }
         is('>'.U) {
-          pc := RegNext(pc + 1.U)
+          pc := (pc + 1.U)
           inst := instMem.read(pc + 1.U)
-          stackPtr := RegNext(stackPtr + 1.U)
+          stackPtr := (stackPtr + 1.U)
           stackData := stackMem.read(stackPtr + 1.U)
         }
         is('<'.U) {
-          pc := RegNext(pc + 1.U)
+          pc := (pc + 1.U)
           inst := instMem.read(pc + 1.U)
-          stackPtr := RegNext(stackPtr - 1.U)
+          stackPtr := (stackPtr - 1.U)
           stackData := stackMem.read(stackPtr - 1.U)
         }
         is('+'.U) {
           stackMem.write(stackPtr, stackData + 1.U)
 
-          pc := RegNext(pc + 1.U)
+          pc := (pc + 1.U)
           inst := instMem.read(pc + 1.U)
-          stackData := RegNext(stackData + 1.U)
+          stackData := (stackData + 1.U)
         }
         is('-'.U) {
           stackMem.write(stackPtr, stackData - 1.U)
 
-          pc := RegNext(pc + 1.U)
+          pc := (pc + 1.U)
           inst := instMem.read(pc + 1.U)
-          stackData := RegNext(stackData - 1.U)
+          stackData := (stackData - 1.U)
         }
         is('.'.U) {
           // FIFOが受付可能でかつこちらがデータを出していないとき
           when(io.stdoutReaady && !stdoutValid) {
             // 標準出力に追加
-            stdoutData := RegNext(stackData)
-            stdoutValid := RegNext(true.B)
-            stdoutPc := RegNext(pc)
+            stdoutData := (stackData)
+            stdoutValid := (true.B)
+            stdoutPc := (pc)
 
-            pc := RegNext(pc + 1.U)
+            pc := (pc + 1.U)
             inst := instMem.read(pc + 1.U)
           }
         }
         is(','.U) {
           // FIFOが受付可能でかつこちらがデータを出していないとき
           when(io.stdinValid && !stdinAck) {
-            stdinAck := RegNext(true.B) // 次のタイミングで下げる
+            stdinAck := (true.B) // 次のタイミングで下げる
             stackMem.write(stackPtr, io.stdinData)
             // 標準出力に追加
-            pc := RegNext(pc + 1.U)
+            pc := (pc + 1.U)
             inst := instMem.read(pc + 1.U)
-            stackData := RegNext(io.stdinData)
+            stackData := (io.stdinData)
           }
         }
         is('['.U) {
           when(stackData === 0.U) {
             // 対応する] までJump
-            branchJump := RegNext(true.B)
-            branchJumpNest := RegNext(0.U)
-            pc := RegNext(pc + 1.U)
+            branchJump := (true.B)
+            branchJumpNest := (0.U)
+            pc := (pc + 1.U)
             inst := instMem.read(pc + 1.U)
           } .otherwise {
             // branchStackに現在位置を追加して継続
             branchStackMem.write(branchStackPtr, pc)
-            pc := RegNext(pc + 1.U)
+            pc := (pc + 1.U)
             inst := instMem.read(pc + 1.U)
-            branchStackPtr := RegNext(branchStackPtr + 1.U)
-            branchStackData := RegNext(pc) // すぐに読み出せるように最上位の値を格納する
+            branchStackPtr := (branchStackPtr + 1.U)
+            branchStackData := (pc) // すぐに読み出せるように最上位の値を格納する
           }
         }
         is(']'.U) {
           // '['の場所まで戻る
-          pc := RegNext(branchStackData)
-          inst := RegNext('['.U)
+          pc := (branchStackData)
+          inst := ('['.U)
           // stack popしとく
           when(branchStackPtr > 1.U) {
-            branchStackPtr := RegNext(branchStackPtr - 1.U)
+            branchStackPtr := (branchStackPtr - 1.U)
             branchStackData := branchStackMem.read(branchStackPtr - 2.U) // stackなのでptr-1にデータが有る
           }.otherwise {
             // 1, 0のときにこの命令が来た場合、結果としてstack  clearと等価
-            branchStackPtr := RegNext(0.U)
-            branchStackData := RegNext(0.U)
+            branchStackPtr := (0.U)
+            branchStackData := (0.U)
           }
         }
       }
     }
   } .otherwise {
     // プログラムを初期位置へ
-    branchJump := RegNext(false.B)
-    branchJumpNest := RegNext(0.U)
-    pc := RegNext(0.U)
+    branchJump := (false.B)
+    branchJumpNest := (0.U)
+    pc := (0.U)
     inst := instMem.read(0.U)
-    stackPtr := RegNext(0.U)
+    stackPtr := (0.U)
     stackData := stackMem.read(0.U)
-    branchStackPtr := RegNext(0.U)
-    branchStackData := branchStackMem(0.U) // !!!!便宜上 ptr - 1の値を持たせる
-    stdinPc := RegNext(0.U)
-    stdoutPc := RegNext(0.U)
+    branchStackPtr := (0.U)
+    branchStackData := (0.U) // !!!!便宜上 ptr - 1の値を持たせる
+    stdinPc := (0.U)
+    stdoutPc := (0.U)
   }
   // プログラム開始制御
   val run = RegInit(Bool(), false.B)
   val run2 = RegInit(Bool(), false.B)
-  run := RegNext(io.run)
-  run2 := RegNext(run)
+  run := (io.run)
+  run2 := (run)
   when(halted) {
     when((!run2 && run) && !io.program) {
-      halted := RegNext(false.B)
+      halted := (false.B)
     }
   }
   // FIFOから読み出してメモリを書き換える
   when(halted && io.program && io.programValid) {
-    programAck := RegNext(true.B)
+    programAck := (true.B)
     instMem.write(io.programAddr, io.programData)
   } .otherwise {
-    programAck := RegNext(false.B)
+    programAck := (false.B)
   }
 
 }

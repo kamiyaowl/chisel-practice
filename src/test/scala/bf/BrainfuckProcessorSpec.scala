@@ -9,7 +9,7 @@ import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 class BrainfuckProcessorSpec extends FlatSpec with Matchers {
   "Brainfuck" should "Program Data and stdout 'ABC'" in {
-    val src = "><><++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+.+.><><"
+    val src = "><><+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+.+.><><"
     val dst = "ABC"
     var stdoutList = "" :: Nil
 
