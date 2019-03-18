@@ -9,7 +9,7 @@ import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 class BrainfuckProcessorSpec extends FlatSpec with Matchers {
   "Brainfuck" should "Program Data and stdout 'ABC'" in {
-    val src = ">>>>>++++++++++++++++++++++++++++++++++++++++\n+++++++++++++++++++++++++.+.+.>++++++++++."
+    val src = "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+.+."
     val dst = "ABC"
     var stdoutList = "" :: Nil
 
@@ -72,7 +72,7 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
             stdoutList = stdoutList :+ s"${peek(c.io.stdoutData)}"
           }
           step = step + 1
-          step(1)
+          step(2) // async memにしたら合成上2cycになった？
 
         }
         println(stdoutList.mkString)

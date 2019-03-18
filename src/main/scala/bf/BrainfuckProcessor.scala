@@ -49,17 +49,17 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   io.stdoutValid := stdoutValid
   // Program memory
   val instMemSize = pow(2, instMemWidth).asInstanceOf[Int]
-  val instMem = SyncReadMem(instMemSize, UInt(8.W))
+  val instMem = Mem(instMemSize, UInt(8.W))
   // Stack memory
   val stackMemSize = pow(2, stackMemWidth).asInstanceOf[Int]
-  val stackMem = SyncReadMem(stackMemSize, UInt(8.W))
+  val stackMem = Mem(stackMemSize, UInt(8.W))
   val stackPtr = RegInit(UInt(stackMemWidth.W), 0.U)
   val stackData = RegInit(UInt(8.W), 0.U)
   io.stackPtr := stackPtr
   io.stackData := stackData
   // BranchStack memory
   val branchStackMemSize = pow(2, branchStackMemWidth).asInstanceOf[Int]
-  val branchStackMem = SyncReadMem(branchStackMemSize, UInt(instMemWidth.W))
+  val branchStackMem = Mem(branchStackMemSize, UInt(instMemWidth.W))
   val branchStackPtr = RegInit(UInt(branchStackMemWidth.W), 0.U)
   val branchStackData = RegInit(UInt(instMemWidth.W), 0.U)
   io.branchStackPtr := branchStackPtr
@@ -129,16 +129,16 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
           // TODO: isntMem.readが1cycで終わってない！！！！！！！
           // NG inst := instMem.read(pc + 1.U)
           // NG inst := instMem.read(1.U)
-          inst := RegNext('>'.U) //          inst := instMem.read(pc + 1.U)
+          inst := instMem.read(pc + 1.U)
 
           stackPtr := RegNext(stackPtr + 1.U)
-          stackData := RegNext(stackData + 1.U)
+          stackData := stackMem.read(stackPtr + 1.U)
         }
         is('<'.U) {
           pc := RegNext(pc + 1.U)
           inst := instMem.read(pc + 1.U)
           stackPtr := RegNext(stackPtr - 1.U)
-          stackData := RegNext(stackData - 1.U)
+          stackData := stackMem.read(stackPtr - 1.U)
         }
         is('+'.U) {
           stackMem.write(stackPtr, stackData + 1.U)
