@@ -126,11 +126,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
         }
         is('>'.U) {
           pc := RegNext(pc + 1.U)
-          // TODO: isntMem.readが1cycで終わってない！！！！！！！
-          // NG inst := instMem.read(pc + 1.U)
-          // NG inst := instMem.read(1.U)
           inst := instMem.read(pc + 1.U)
-
           stackPtr := RegNext(stackPtr + 1.U)
           stackData := stackMem.read(stackPtr + 1.U)
         }
@@ -233,14 +229,8 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   when(halted && io.program && io.programValid) {
     programAck := RegNext(true.B)
     instMem.write(io.programAddr, io.programData)
-    // for debug
-    stdoutData := RegNext(io.programData)
-    stdoutValid := RegNext(true.B)
   } .otherwise {
     programAck := RegNext(false.B)
-    // for debug
-    stdoutData := RegNext(0.U)
-    stdoutValid := RegNext(false.B)
   }
 
 }
