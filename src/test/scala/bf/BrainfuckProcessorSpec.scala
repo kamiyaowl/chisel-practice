@@ -9,7 +9,7 @@ import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 class BrainfuckProcessorSpec extends FlatSpec with Matchers {
   "Brainfuck" should "Program Data and stdout 'ABC'" in {
-    val src = "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+.+."
+    val src = "><><++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+.+.><><"
     val dst = "ABC"
     var stdoutList = "" :: Nil
 
@@ -65,6 +65,8 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
         var step = 0
         while(peek(c.io.halted) == BigInt(0) && (step < src.length * 2)) { // 無限ループするときのデバッグ用に追加
           println(s"[$step] [Program] inst:${peek(c.io.inst).charValue} pc:${peek(c.io.pc)} halted:${peek(c.io.halted)}")
+          step(1) // async memにしたら合成上2cycになった？
+
           println(s"\t[Stack]  data:${peek(c.io.stackData)} ptr:${peek(c.io.stackPtr)}")
           println(s"\t[Branch] data:${peek(c.io.branchStackData)} ptr:${peek(c.io.branchStackPtr)}")
           println(s"\t[stdout] data:${peek(c.io.stdoutData)} valid:${peek(c.io.stdoutValid)}")
@@ -73,7 +75,6 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
             println(s"\t\t[current stdout] ${stdoutList.mkString}")
           }
           step = step + 1
-          step(1) // async memにしたら合成上2cycになった？
         }
         println(s"[result] stdout:${stdoutList.mkString}")
       }

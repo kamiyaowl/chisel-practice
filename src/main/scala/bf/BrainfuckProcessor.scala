@@ -80,6 +80,8 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   val branchJumpNest = RegInit(UInt(branchStackMemWidth.W), 0.U) // branchJump中に見かけた'[',']'のネスト数をメモ
   val inst = RegInit(UInt(8.W), 0.U)
   val pc = RegInit(UInt(instMemWidth.W), 0.U)
+  val stdinPc = RegInit(UInt(instMemWidth.W), 0.U) // 標準出力した最後のPCを覚えておく(2重に出る
+  val stdoutPc = RegInit(UInt(instMemWidth.W), 0.U) // 標準入力した最後のPCを覚えておく(2重に出る
   io.inst := inst
   io.pc := pc
 
@@ -123,6 +125,8 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
           stackData := RegNext(stackData + 1.U)
           branchStackPtr := RegNext(0.U)
           branchStackData := branchStackMem(0.U) // !!!!便宜上 ptr - 1の値を持たせる
+          stdinPc := RegNext(0.U)
+          stdoutPc := RegNext(0.U)
         }
         is('>'.U) {
           pc := RegNext(pc + 1.U)
@@ -156,6 +160,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
             // 標準出力に追加
             stdoutData := RegNext(stackData)
             stdoutValid := RegNext(true.B)
+            stdoutPc := RegNext(pc)
 
             pc := RegNext(pc + 1.U)
             inst := instMem.read(pc + 1.U)
@@ -214,6 +219,8 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     stackData := stackMem.read(0.U)
     branchStackPtr := RegNext(0.U)
     branchStackData := branchStackMem(0.U) // !!!!便宜上 ptr - 1の値を持たせる
+    stdinPc := RegNext(0.U)
+    stdoutPc := RegNext(0.U)
   }
   // プログラム開始制御
   val run = RegInit(Bool(), false.B)
