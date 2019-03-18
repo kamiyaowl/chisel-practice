@@ -8,9 +8,9 @@ import chisel3.util._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 class BrainfuckProcessorSpec extends FlatSpec with Matchers {
-  "Brainfuck" should "Program Data and stdout 'ABC'" in {
-    val src = "><><+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++.+.+.><><"
-    val dst = "ABC"
+  "Brainfuck" should "Program Data and stdout 'Hello World!'" in {
+    val src = ">+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-]<.>+++++++++++[<+++++>-]<.>++++++++[<+++>-]<.+++.------.--------.[-]>++++++++[<++++>-]<+.[-]++++++++++."
+    val dst = "Hello World!"
     var stdoutList = "" :: Nil
 
     val result = Driver(() => new BrainfuckProcessor()) {
@@ -63,7 +63,7 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
 
         // monitor
         var step = 0
-        while(peek(c.io.halted) == BigInt(0) && (step < src.length * 2)) { // 無限ループするときのデバッグ用に追加
+        while(peek(c.io.halted) == BigInt(0) ) { // 無限ループするときのデバッグ用に追加 && (step < src.length * 2)
           println(s"[$step] [Program] inst:${peek(c.io.inst).charValue} pc:${peek(c.io.pc)} halted:${peek(c.io.halted)}")
           step(1) // async memにしたら合成上2cycになった？
 
