@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util._
 import scala.math.pow
 
+//noinspection ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses
 class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branchStackMemWidth: Int = 4) extends Module {
   val io = IO(new Bundle {
     // system
@@ -31,14 +32,14 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     // stdout FIFO out
     val stdoutData = Output(UInt(8.W))
     val stdoutValid = Output(Bool()) // stdoutが有効データならtrue
-    val stdoutReaady = Input(Bool()) // つないだ先が読み出してくれたらtrue
+    val stdoutReady = Input(Bool()) // つないだ先が読み出してくれたらtrue
     val stdoutAck = Input(Bool()) // つないだ先が読み出してくれたらtrue
   })
   // output
   val programAck = RegInit(Bool(), false.B)
   io.programAck := programAck
   val halted = RegInit(Bool(), true.B)
-  io.halted := halted;
+  io.halted := halted
   val stdinReady = RegInit(Bool(), false.B)
   io.stdinReady := stdinReady
   val stdinAck = RegInit(Bool(), true.B)
@@ -48,17 +49,17 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   val stdoutValid = RegInit(Bool(), false.B)
   io.stdoutValid := stdoutValid
   // Program memory
-  val instMemSize = pow(2, instMemWidth).asInstanceOf[Int]
+  val instMemSize: Int = pow(2, instMemWidth).asInstanceOf[Int]
   val instMem = Mem(instMemSize, UInt(8.W))
   // Stack memory
-  val stackMemSize = pow(2, stackMemWidth).asInstanceOf[Int]
+  val stackMemSize: Int = pow(2, stackMemWidth).asInstanceOf[Int]
   val stackMem = Mem(stackMemSize, UInt(8.W))
   val stackPtr = RegInit(UInt(stackMemWidth.W), 0.U)
   val stackData = RegInit(UInt(8.W), 0.U)
   io.stackPtr := stackPtr
   io.stackData := stackData
   // BranchStack memory
-  val branchStackMemSize = pow(2, branchStackMemWidth).asInstanceOf[Int]
+  val branchStackMemSize: Int = pow(2, branchStackMemWidth).asInstanceOf[Int]
   val branchStackMem = Mem(branchStackMemSize, UInt(instMemWidth.W))
   val branchStackPtr = RegInit(UInt(branchStackMemWidth.W), 0.U)
   val branchStackData = RegInit(UInt(instMemWidth.W), 0.U)
@@ -67,6 +68,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
 
   // FIFO後処理
   when(stdinAck) { // メイン側はAckが下がるまで連射しない
+    //noinspection ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses
     stdinAck := (false.B)
   }
   when(stdoutValid) { // メイン側はvalidが下がるまで次を出力しないので
@@ -80,8 +82,6 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   val branchJumpNest = RegInit(UInt(branchStackMemWidth.W), 0.U) // branchJump中に見かけた'[',']'のネスト数をメモ
   val inst = RegInit(UInt(8.W), 0.U)
   val pc = RegInit(UInt(instMemWidth.W), 0.U)
-  val stdinPc = RegInit(UInt(instMemWidth.W), 0.U) // 標準出力した最後のPCを覚えておく(2重に出る
-  val stdoutPc = RegInit(UInt(instMemWidth.W), 0.U) // 標準入力した最後のPCを覚えておく(2重に出る
   io.inst := inst
   io.pc := pc
 
@@ -109,7 +109,6 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
       }
     } .otherwise {
       // 初回の命令はロードされている状態でスタート
-      println(s"bf-processor pc:$pc inst:$inst")
       switch(inst) {
         is(0.U) {
           halted := true.B
@@ -125,8 +124,6 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
           stackData := (stackData + 1.U)
           branchStackPtr := (0.U)
           branchStackData := (0.U) // !!!!便宜上 ptr - 1の値を持たせる
-          stdinPc := (0.U)
-          stdoutPc := (0.U)
         }
         is('>'.U) {
           pc := (pc + 1.U)
@@ -156,11 +153,11 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
         }
         is('.'.U) {
           // FIFOが受付可能でかつこちらがデータを出していないとき
-          when(io.stdoutReaady && !stdoutValid) {
+          when(io.stdoutReady && !stdoutValid) {
             // 標準出力に追加
+            //noinspection ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses
             stdoutData := (stackData)
             stdoutValid := (true.B)
-            stdoutPc := (pc)
 
             pc := (pc + 1.U)
             inst := instMem.read(pc + 1.U)
@@ -219,8 +216,6 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     stackData := stackMem.read(0.U)
     branchStackPtr := (0.U)
     branchStackData := (0.U) // !!!!便宜上 ptr - 1の値を持たせる
-    stdinPc := (0.U)
-    stdoutPc := (0.U)
   }
   // プログラム開始制御
   val run = RegInit(Bool(), false.B)
@@ -228,7 +223,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   run := (io.run)
   run2 := (run)
   when(halted) {
-    when((!run2 && run) && !io.program) {
+    when.apply((!run2 && run) && !io.program) {
       halted := (false.B)
     }
   }

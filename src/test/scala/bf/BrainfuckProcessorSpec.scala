@@ -23,7 +23,7 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
         poke(c.io.programValid, false.B)
         poke(c.io.stdinData, 'X'.U)
         poke(c.io.stdinValid, false.B)
-        poke(c.io.stdoutReaady, false.B)
+        poke(c.io.stdoutReady, false.B)
         poke(c.io.stdoutAck, false.B)
         step(10)
         // initialize
@@ -51,7 +51,7 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
 
         // run (stdoutは常に受けられるようにする)
         poke(c.io.run, true.B)
-        poke(c.io.stdoutReaady, true.B)
+        poke(c.io.stdoutReady, true.B)
         poke(c.io.stdoutAck, true.B)
         step(3) // 3cyc以上入れないとトリガがかからないのでhalted解除されない
         // run
