@@ -12,11 +12,13 @@ class UartTxRxSpec extends ChiselFlatSpec {
   }
 
   "UartTxRx" should "Rx Data" in {
-    val duration = calcDuration(100e6, 9600)
+    val freq = 10e6
+    val baud = 115200
+    val duration = calcDuration(freq, baud)
     val data = "Hello."
     var dst = "" :: Nil
 
-    val result = Driver(() => new UartTxRx(100e6, 9600)) {
+    val result = Driver(() => new UartTxRx(freq, baud)) {
       c => new PeekPokeTester(c) {
         // init
         poke(c.io.rx, true.B)
@@ -34,7 +36,6 @@ class UartTxRxSpec extends ChiselFlatSpec {
         for(d <- data) {
           println(s"\t[TEST] Data:$d")
           val sendData = Seq(
-            true, // 予備
             false, // startbit
             (d & 0x01) != 0x00,
             (d & 0x02) != 0x00,
@@ -45,8 +46,6 @@ class UartTxRxSpec extends ChiselFlatSpec {
             (d & 0x40) != 0x00,
             (d & 0x80) != 0x00,
             true, // stopbit
-            true, // 予備
-            true, // 予備
           )
           for(s <- sendData) {
             poke(c.io.rx, s.B)
