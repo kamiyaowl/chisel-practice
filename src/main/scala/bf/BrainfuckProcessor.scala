@@ -230,5 +230,6 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
 
 }
 object BrainfuckProcessor extends App {
-  chisel3.Driver.execute(args,()=>new BrainfuckProcessor())
+//  chisel3.Driver.execute(args,()=>new BrainfuckProcessor())
+
 }
