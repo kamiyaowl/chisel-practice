@@ -53,6 +53,8 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
         poke(c.io.run, true.B)
         poke(c.io.stdoutReady, true.B)
         poke(c.io.stdoutAck, true.B)
+        poke(c.io.stdinData, 'X'.U)
+        poke(c.io.stdinValid, true.B)
         step(3) // 3cyc以上入れないとトリガがかからないのでhalted解除されない
         // run
         if (printDetail) {
@@ -89,12 +91,28 @@ class BrainfuckProcessorSpec extends FlatSpec with Matchers {
     val dst = "Hello World!"
     run(src, dst, false)
   }
-  "Brainfuck" should "nested loop test" in {
+  "Brainfuck" should "nested loop" in {
     // !をつくる
     val src = ">+++[<++++++++++>-]<+++>>++++++++++[<+++[<.>-]<+>>-]"
     val dst = ((0 until 10).map(_ + '!').map(x => s"${x.toChar}" * 3).mkString)
     println(dst)
 
     run(src, dst, false)
+  }
+  "Brainfuck" should "contunious stdout" in {
+    // !をつくる
+    val src = ">+++[<++++++++++>-]<+++..........>++++++++++[<.>-]"
+    val dst = "!" * 20
+    println(dst)
+
+    run(src, dst, false)
+  }
+  "Brainfuck" should "stdin" in {
+    // !をつくる
+    val src = ",."
+    val dst = "X"
+    println(dst)
+
+    run(src, dst, true)
   }
 }
