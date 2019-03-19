@@ -7,7 +7,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
-class BrainfuckProcessorSpec extends FlatSpec with Matchers {
+class BrainfuckProcessorSpec extends ChiselFlatSpec {
   def run(src: String, dst: String, printDetail: Boolean = true) = {
     var stdoutList = "" :: Nil
 

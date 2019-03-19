@@ -5,7 +5,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
-class CompressorSpec extends FlatSpec with Matchers {
+class CompressorSpec extends ChiselFlatSpec {
   "Compressor" should "parametric full test" in {
     val result = Driver(() => new Compressor(32)) {
       c => new PeekPokeTester(c) {

@@ -5,7 +5,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
-class PassthroughSpec extends FlatSpec with Matchers {
+class PassthroughSpec extends ChiselFlatSpec {
   "Passthrough(width=8)" should "input == output" in {
     val result = Driver(() => new Passthrough(8)) {
       c => new PeekPokeTester(c) {

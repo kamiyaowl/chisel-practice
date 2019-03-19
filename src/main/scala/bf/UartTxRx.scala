@@ -22,6 +22,9 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
     // status
     val rxActive = Output(Bool())
     val txActive = Output(Bool())
+    // debug
+    val rxDebugBuf = Output(UInt(8.W))
+    val txDebugBuf = Output(UInt(8.W))
   })
   // io/Outputs
   val tx = RegInit(Bool(), true.B)
@@ -39,6 +42,7 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   val duration = (freq / baud).toInt
   val halfDuration = duration / 2
   val durationCounterWidth = ceil(log2(duration)).toInt + 1 // ex.100MHz, 9600で10416-log2->13.34  14bit必要(<16384)
+  // printf(p"[UartTxRx] freq:$freq baud:$baud duration:$duration counterWidth:$durationCounterWidth")
 
   // startbit検出時にリセットさせて位相同期する
   val rxActive = RegInit(Bool(), false.B) // startbit検出〜全データ受信までtrue, 取り込み終わったら解除してね
@@ -50,7 +54,8 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   rx1 := io.rx
   rx2 := rx1
   when(!rxActive) {
-    when(!rx2 && rx1) {
+    when(rx2 && !rx1) {
+      printf(p"[Rx] Active\n")
       rxActive := true.B
       rxTrigger := false.B
       rxDurationCounter := -halfDuration.S // このトリガがかかる時点では遷移直後なので半周期ずらす
@@ -69,13 +74,16 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   }
   // rxTriggerに同期してデータ取り込む仕事
   val rxBuf = RegInit(UInt(8.W), 0.U)
+  io.rxDebugBuf := rxBuf
   val rxCounter = RegInit(UInt(4.W), 0.U)
   when(rxActive) {
     when(rxTrigger) {
       rxCounter := rxCounter + 1.U
       rxBuf := (rxBuf >> 1).asUInt + Mux(io.rx, 0x80.U, 0x0.U)
+      printf(p"[Rx] [$rxCounter] rx:${io.rx} buf:$rxBuf\n")
       // @stopbit
       when(rxCounter > 7.U) {
+        printf(p"[Rx] Received:$rxBuf\n")
         rxActive := false.B
         rxData := rxBuf
         rxValid := true.B
@@ -97,10 +105,12 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   val txTrigger = RegInit(Bool(), false.B) // trueのときに取り込んで
   val txDurationCounter = RegInit(SInt(durationCounterWidth.W), 0.S) // rxと棲み分け面倒だしsintでいいや
   val txBuf = RegInit(UInt(8.W), 0.U)
+  io.txDebugBuf := txBuf
   val txCounter = RegInit(UInt(4.W), 0.U)
   when(!txActive) {
     when (io.txValid) {
       // データ取り込み、転送開始
+      printf(p"[Tx] Active $io.txData\n")
       txActive := true.B
       txBuf := io.txData
       txAck := true.B
@@ -123,6 +133,7 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   when(txActive) {
     when(txTrigger) {
       when(txCounter === 0.U) {
+        printf(p"[Tx] startbit\n")
         tx := false.B
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 9.U) {
@@ -131,14 +142,17 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 10.U) {
         // stopbit
+        printf(p"[Tx] stopbit\n")
         tx:= true.B
         txCounter := txCounter + 1.U
       } .otherwise {
         // fin
+        printf(p"[Tx] fin\n")
         txActive := false.B
         tx := true.B
         txCounter := 0.U
       }
+      printf(p"[Tx] [$txCounter] rx:$tx buf:$txBuf\n")
     }
   } .otherwise {
     tx := true.B
