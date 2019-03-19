@@ -95,7 +95,7 @@ class UartTxRxSpec extends ChiselFlatSpec {
             poke(c.io.txValid, true.B)
 
             var capture = List[Boolean]()
-            for(j <- 0 until 10) { //start, d[0] ~ d[7], stop
+            for(j <- 0 until 11) { //start, d[0] ~ d[7], stop, fin
               for (i <- 0 until duration) {
                 step(1)
                 // FIFOの供給やめ
