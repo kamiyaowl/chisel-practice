@@ -223,7 +223,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   run := (io.run)
   run2 := (run)
   when(halted) {
-    when.apply((!run2 && run) && !io.program) {
+    when((!run2 && run) && !io.program) {
       halted := (false.B)
     }
   }
