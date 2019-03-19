@@ -113,18 +113,6 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
         is(0.U) {
           halted := true.B
         }
-        is('!'.U) {
-          // リスタート
-          // stackPtrは隣にずらすだけでクリアしないのでいつかしぬ
-          branchJump := (false.B)
-          branchJumpNest := (0.U)
-          pc := (0.U)
-          inst := instMem.read(0.U)
-          stackPtr := (stackPtr + 1.U)
-          stackData := (stackData + 1.U)
-          branchStackPtr := (0.U)
-          branchStackData := (0.U) // !!!!便宜上 ptr - 1の値を持たせる
-        }
         is('>'.U) {
           pc := (pc + 1.U)
           inst := instMem.read(pc + 1.U)
@@ -203,6 +191,11 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
             branchStackPtr := (0.U)
             branchStackData := (0.U)
           }
+        }
+        is('\r'.U, '\n'.U, ' '.U) {
+          // 余計な文字は無視
+          pc := (pc + 1.U)
+          inst := instMem.read(pc + 1.U)
         }
       }
     }
