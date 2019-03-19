@@ -138,7 +138,8 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 9.U) {
         // 1 ~ 8
-        tx := txBuf(txCounter - 1.U)
+        // TODO: Assignに変換されているかも、念の為合成後のデザインを見る必要がある
+        tx := txBuf(txCounter) // 一個前のクロックなのでそのまま使って大丈夫
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 10.U) {
         // stopbit

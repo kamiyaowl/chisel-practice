@@ -117,7 +117,7 @@ class UartTxRxSpec extends ChiselFlatSpec {
                      .map{ case(b, index) => if(b) 1 << index else 0 }
                      .foldLeft(0) { (x, acc) => x | acc}
                      .toChar
-            println(s"[TEST] capture:$capture data:$x")
+            println(s"[TEST] capture:(${capture.mkString(",")}) data:$x")
             dst = dst :+ s"$x"
           }
           //
