@@ -54,7 +54,7 @@ class UartTxRxSpec extends ChiselFlatSpec {
               step(1)
               if (peek(c.io.rxValid) > BigInt(0)) {
                 dst = dst :+ s"${peek(c.io.rxData).charValue}"
-                println(s"\t\t[TEST] [RX] ${peek(c.io.rxData)}(${peek(c.io.rxData).charValue})} dst:${dst.mkString}")
+                println(s"\t\t[TEST] [RX] [$i/$duration] ${peek(c.io.rxData)}(${peek(c.io.rxData).charValue})} dst:${dst.mkString}")
                 poke(c.io.rxAck, true.B)
               } else {
                 poke(c.io.rxAck, false.B)
@@ -63,6 +63,65 @@ class UartTxRxSpec extends ChiselFlatSpec {
           }
         }
       }
+    }
+    println(s"[result] dst:${dst.mkString}")
+    assert(result)
+    data.equals(dst.mkString)
+  }
+  "UartTxRx" should "Tx Data" in {
+    val freq = 100e6
+    val baud = 9600
+    val duration = calcDuration(freq, baud)
+    val data = "Hello."
+    var dst = "" :: Nil
+
+    val result = Driver(() => new UartTxRx(freq, baud)) {
+      c =>
+        new PeekPokeTester(c) {
+          // init
+          poke(c.io.rx, true.B)
+          poke(c.io.rxReady, false.B)
+          poke(c.io.rxAck, false.B)
+          poke(c.io.txData, 0.U)
+          poke(c.io.txValid, false.B)
+          step(5)
+          // init
+
+          // tx data
+          step(5)
+          for (d <- data) {
+            println(s"\t[TEST] Data:$d")
+            poke(c.io.txData, d.U)
+            poke(c.io.txValid, true.B)
+
+            var capture = List[Boolean]()
+            for(j <- 0 until 10) { //start, d[0] ~ d[7], stop
+              for (i <- 0 until duration) {
+                step(1)
+                // FIFOの供給やめ
+                if (peek(c.io.txAck) > BigInt(0)) {
+                  poke(c.io.txData, 0.U)
+                  poke(c.io.txValid, false.B)
+                }
+                // c半分らへんでapture
+                if (i == duration / 2) {
+                  val x = peek(c.io.tx) > BigInt(0)
+                  capture = capture :+ x
+                }
+              }
+            }
+            val x =
+              capture.drop(1)
+                     .take(8)
+                     .zipWithIndex
+                     .map{ case(b, index) => if(b) 1 << index else 0 }
+                     .foldLeft(0) { (x, acc) => x | acc}
+                     .toChar
+            println(s"[TEST] capture:$capture data:$x")
+            dst = dst :+ s"$x"
+          }
+          //
+        }
     }
     println(s"[result] dst:${dst.mkString}")
     assert(result)
