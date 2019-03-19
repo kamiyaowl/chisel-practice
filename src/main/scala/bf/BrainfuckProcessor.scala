@@ -91,7 +91,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
       pc := (pc + 1.U)
       inst := instMem.read(pc + 1.U)
       switch(inst) {
-        is(0.U) {
+        is(0.U, '#'.U) { // \0か#挿入で停止できるようにした
           halted := true.B
         }
         is('['.U) {
@@ -110,7 +110,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     } .otherwise {
       // 初回の命令はロードされている状態でスタート
       switch(inst) {
-        is(0.U) {
+        is(0.U, '#'.U) {
           halted := true.B
         }
         is('>'.U) {
