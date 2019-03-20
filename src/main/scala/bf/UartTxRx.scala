@@ -132,14 +132,15 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   // Startbit(0), d[0] ~ d[7], Stopbit(1)
   when(txActive) {
     when(txTrigger) {
+      printf(p"[Tx] [$txCounter] rx:$tx buf:${txBuf}\n")
       when(txCounter === 0.U) {
         printf(p"[Tx] startbit\n")
         tx := false.B
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 9.U) {
         // 1 ~ 8
-        // TODO: Assignに変換されているかも、念の為合成後のデザインを見る必要がある
-        tx := txBuf(txCounter) // 一個前のクロックなのでそのまま使って大丈夫
+        printf(p"[Tx] data\n")
+        tx := txBuf(txCounter - 1.U)
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 10.U) {
         // stopbit
@@ -153,7 +154,6 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
         tx := true.B
         txCounter := 0.U
       }
-      printf(p"[Tx] [$txCounter] rx:$tx buf:$txBuf\n")
     }
   } .otherwise {
     tx := true.B

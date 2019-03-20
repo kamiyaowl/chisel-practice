@@ -70,7 +70,7 @@ class UartTxRxSpec extends ChiselFlatSpec {
   }
   "UartTxRx" should "Tx Data" in {
     val freq = 100e6
-    val baud = 9600
+    val baud = 115200
     val duration = calcDuration(freq, baud)
     val data = "Hello."
     var dst = "" :: Nil
@@ -95,7 +95,7 @@ class UartTxRxSpec extends ChiselFlatSpec {
             poke(c.io.txValid, true.B)
 
             var capture = List[Boolean]()
-            for(j <- 0 until 11) { //start, d[0] ~ d[7], stop, fin
+            for(j <- 0 until 12) { //idle, start, d[0] ~ d[7], stop, fin
               for (i <- 0 until duration) {
                 step(1)
                 // FIFOの供給やめ
@@ -111,7 +111,7 @@ class UartTxRxSpec extends ChiselFlatSpec {
               }
             }
             val x =
-              capture.drop(1)
+              capture.drop(2)
                      .take(8)
                      .zipWithIndex
                      .map{ case(b, index) => if(b) 1 << index else 0 }
