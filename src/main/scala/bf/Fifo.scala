@@ -29,7 +29,7 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
   io.outValid := outValid
   // ring buffer
   val depth: Int = scala.math.pow(2, depthWidth).toInt
-  val mem = new Mem(UInt(width.W), depth)
+  val mem = Mem(UInt(width.W), depth)
   // ptrはどちらも***今いる場所のデータは無効***
   val inPtr = RegInit(UInt(depthWidth.W), 1.U) // 今いる場所にデータを書いたら進める
   val outPtr = RegInit(UInt(depthWidth.W), 0.U) // 読むときは一個先のデータを読んでPtrをその位置に動かす
@@ -82,4 +82,8 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
       outValid := false.B
     }
   }
+}
+
+object Fifo extends App {
+  chisel3.Driver.execute(args,()=>new Fifo(8, 4))
 }
