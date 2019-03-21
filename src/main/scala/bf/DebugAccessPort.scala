@@ -34,16 +34,13 @@ class DebugAccessPort(
     val triLed2 = Output(UInt(3.W)) // J3,J2,H4(full color LED)
     val triLed3 = Output(UInt(3.W)) // K1,H6,K2(full color LED)
   })
-
-  val uart = new UartTxRx(freq, baud)
-  val bf = new BrainfuckProcessor(instMemWidth, stackMemWidth, branchStackMemWidth)
-  val fifoDapToBf = new Fifo(8, depthWidth)
-  val fifoBfToDap = new Fifo(8, depthWidth)
+  val uart = Module(new UartTxRx(freq, baud))
+  val bf = Module(new BrainfuckProcessor(instMemWidth, stackMemWidth, branchStackMemWidth))
 
   // physical system control
   // val chatterButton0 = new UntiChatter(freq, captureFreq, averageWidth, isPositive)
-  val chatterProgram = new UntiChatter(freq, captureFreq, averageWidth, isPositive)
-  val chatterRun = new UntiChatter(freq, captureFreq, averageWidth, isPositive)
+  val chatterProgram = Module(new UntiChatter(freq, captureFreq, averageWidth, isPositive))
+  val chatterRun = Module(new UntiChatter(freq, captureFreq, averageWidth, isPositive))
   val program = Wire(Bool())
   val run = Wire(Bool())
   io.switches(0) <> chatterProgram.io.din
@@ -57,9 +54,10 @@ class DebugAccessPort(
   // 合成時にはset_false_path注釈をつけたほうがいいかも
   val statusInst = RegInit(UInt(8.W), 0.U)
   statusInst := bf.io.inst
-  io.leds(0) := program
-  io.leds(1) <> uart.io.txActive
-  io.leds(2) <> uart.io.rxActive
+  io.leds(0) <> chatterProgram.io.dout // TODO:ここのつなぎ方を工夫して
+  /*
+  io.leds(1) <> run
+  // io.leds(2)  <> // とくに思いつかなかった
   io.leds(3) <> bf.io.halted
   io.triLed0 <> statusInst(2,0)
   io.triLed1 <> statusInst(5,3)
@@ -70,18 +68,34 @@ class DebugAccessPort(
   uart.io.tx <> io.uartTx
   uart.io.rx <> io.uartRx
 
-  // uart -> dap
-  val fifoUartToDap = new Fifo(8, depthWidth)
-  uart.io.rxData <> fifoUartToDap.io.inData
-  uart.io.rxReady <> fifoUartToDap.io.inReady
-  uart.io.rxValid <> fifoUartToDap.io.inValid
-  uart.io.rxAck <> fifoUartToDap.io.inAck
-  // dap -> uart
-  val fifoDapToUart = new Fifo(8, depthWidth)
-  uart.io.txData <> fifoDapToUart.io.outData
-  uart.io.txReady <> fifoDapToUart.io.outReady
-  uart.io.txValid <> fifoDapToUart.io.outValid
-  uart.io.txAck <> fifoDapToUart.io.outAck
+  // uart -> bf
+  // programモードだった場合は、program側にのみデータが行くように
+  // それ以外の場合は、stdinにデータが行くように
+  val fifoUartToBf = Module(new Fifo(8, depthWidth))
+  uart.io.rxData <> fifoUartToBf.io.inData
+  uart.io.rxReady <> fifoUartToBf.io.inReady
+  uart.io.rxValid <> fifoUartToBf.io.inValid
+  uart.io.rxAck <> fifoUartToBf.io.inAck
+
+  bf.io.programData <> fifoUartToBf.io.outData
+  bf.io.stdinData <> fifoUartToBf.io.outData // dataは共通で兵器
+  bf.io.programValid := Mux(program, fifoUartToBf.io.outValid, false.B)
+  bf.io.stdinValid := Mux(!program, fifoUartToBf.io.outValid, false.B) // program時は封じておく
+  fifoUartToBf.io.outReady := Mux(program, bf.io.programReady, bf.io.stdinReady)
+  fifoUartToBf.io.outAck := Mux(program, bf.io.programAck, bf.io.stdinAck) // これが大事
+
+  // bf -> uart
+  val fifoBfToUart = Module(new Fifo(8, depthWidth))
+  uart.io.txData <> fifoBfToUart.io.outData
+  uart.io.txReady <> fifoBfToUart.io.outReady
+  uart.io.txValid <> fifoBfToUart.io.outValid
+  uart.io.txAck <> fifoBfToUart.io.outAck
+
+  bf.io.stdoutData <> fifoBfToUart.io.inData
+  bf.io.stdoutReady <> fifoBfToUart.io.inReady
+  bf.io.stdoutValid <> fifoBfToUart.io.inValid
+  bf.io.stdoutAck <> fifoBfToUart.io.inAck
+  */
 }
 
 object DebugAccessPort extends App {

@@ -16,6 +16,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     val program = Input(Bool()) // trueでプログラム書き込みモードへ
     val programData = Input(UInt(8.W)) // 入力
     val programValid = Input(Bool()) // 入力内容が有効
+    val programReady = Output(Bool())
     val programAck = Output(Bool()) // 内容を読んだらtrue
     // for status
     val pc = Output(UInt(instMemWidth.W)) // program counter
@@ -35,17 +36,19 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     // stdout FIFO out
     val stdoutData = Output(UInt(8.W))
     val stdoutValid = Output(Bool()) // stdoutが有効データならtrue
-    val stdoutReady = Input(Bool()) // つないだ先が読み出してくれたらtrue
+    val stdoutReady = Input(Bool()) //
     val stdoutAck = Input(Bool()) // つないだ先が読み出してくれたらtrue
   })
   // output
+  val programReady = RegInit(Bool(), false.B) // こっちは常時Readyではない
+  io.programReady := programReady
   val programAck = RegInit(Bool(), false.B)
   io.programAck := programAck
   val halted = RegInit(Bool(), true.B)
   io.halted := halted
   val errorCode = RegInit(UInt(4.W), 0.U)
   io.errorCode := errorCode
-  val stdinReady = RegInit(Bool(), false.B)
+  val stdinReady = RegInit(Bool(), true.B) // 受付はいつでもできる
   io.stdinReady := stdinReady
   val stdinAck = RegInit(Bool(), true.B)
   io.stdinAck := stdinAck
@@ -247,7 +250,10 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   // 非プログラム状態になければAddrは戦闘に戻しておく
   when(!io.program || !halted) {
     programAddr := 0.U
+    programReady := false.B
   } .otherwise {
+    // FIFO受付可能
+    programReady := true.B
     // 有効データが来ていれば読み出してメモリを書き換える
     when(io.programValid) {
       programAck := (true.B)
