@@ -5,6 +5,9 @@ import chisel3.util._
 import scala.math.pow
 
 //noinspection ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses
+// 命令 +-><,.
+// 無視される \r\nxX[space]
+// halt #
 class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branchStackMemWidth: Int = 4) extends Module {
   val io = IO(new Bundle {
     // system
@@ -192,7 +195,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
             branchStackData := (0.U)
           }
         }
-        is('\r'.U, '\n'.U, ' '.U) {
+        is('\r'.U, '\n'.U, ' '.U, 'X'.U, 'x'.U) {
           // 余計な文字は無視
           pc := (pc + 1.U)
           inst := instMem.read(pc + 1.U)
@@ -230,6 +233,5 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
 
 }
 object BrainfuckProcessor extends App {
-//  chisel3.Driver.execute(args,()=>new BrainfuckProcessor())
-
+  chisel3.Driver.execute(args,()=>new BrainfuckProcessor())
 }
