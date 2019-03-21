@@ -16,7 +16,6 @@ class BrainfuckProcessorSpec extends ChiselFlatSpec {
         // initialize
         poke(c.io.run, false.B)
         poke(c.io.program, false.B)
-        poke(c.io.programAddr, 0.U)
         poke(c.io.programData, 0.U)
         poke(c.io.programValid, false.B)
         poke(c.io.stdinData, 'X'.U)
@@ -34,16 +33,14 @@ class BrainfuckProcessorSpec extends ChiselFlatSpec {
         // program data
         for(i <- 0 until src.length) {
           poke(c.io.program, true.B)
-          poke(c.io.programAddr, i.U)
           poke(c.io.programData, src(i))
           poke(c.io.programValid, true.B)
           step(1)
           if (printDetail) {
-            println(s"[Write Program][$i] addr:${peek(c.io.programAddr)} data:${peek(c.io.programData).charValue} stdout:${peek(c.io.stdoutData)}")
+            println(s"[Write Program][$i] addr:$i data:${peek(c.io.programData).charValue} stdout:${peek(c.io.stdoutData)}")
           }
         }
         poke(c.io.program, false.B)
-        poke(c.io.programAddr, 0.U)
         poke(c.io.programData, 0.U)
         poke(c.io.programValid, false.B)
         step(10)

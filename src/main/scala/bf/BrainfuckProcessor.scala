@@ -14,7 +14,6 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     val run = Input(Bool()) // 実行時のトリガ
     // external programming
     val program = Input(Bool()) // trueでプログラム書き込みモードへ
-    val programAddr = Input(UInt(32.W)) // 入力
     val programData = Input(UInt(8.W)) // 入力
     val programValid = Input(Bool()) // 入力内容が有効
     val programAck = Output(Bool()) // 内容を読んだらtrue
@@ -54,6 +53,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   // Program memory
   val instMemSize: Int = pow(2, instMemWidth).asInstanceOf[Int]
   val instMem = Mem(instMemSize, UInt(8.W))
+  val programAddr = RegInit(UInt(instMemWidth.W), 0.U)
   // Stack memory
   val stackMemSize: Int = pow(2, stackMemWidth).asInstanceOf[Int]
   val stackMem = Mem(stackMemSize, UInt(8.W))
@@ -223,12 +223,18 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
       halted := (false.B)
     }
   }
-  // FIFOから読み出してメモリを書き換える
-  when(halted && io.program && io.programValid) {
-    programAck := (true.B)
-    instMem.write(io.programAddr, io.programData)
+  // 非プログラム状態になければAddrは戦闘に戻しておく
+  when(!io.program || !halted) {
+    programAddr := 0.U
   } .otherwise {
-    programAck := (false.B)
+    // 有効データが来ていれば読み出してメモリを書き換える
+    when(io.programValid) {
+      programAck := (true.B)
+      instMem.write(programAddr, io.programData)
+      programAddr := programAddr + 1.U // アドレスはインクリしておく
+    } .otherwise {
+      programAck := (false.B)
+    }
   }
 
 }
