@@ -36,13 +36,27 @@ class DebugAccessPort(
   val bf = new BrainfuckProcessor(instMemWidth, stackMemWidth, branchStackMemWidth)
   val fifoDapToBf = new Fifo(8, depthWidth)
   val fifoBfToDap = new Fifo(8, depthWidth)
+
+  // physical system control
+  val program = RegInit(Bool(), false.B)
+  program := io.buttons(0)
+  val run1 = RegInit(Bool(), false.B)
+  val run2 = RegInit(Bool(), false.B)
+  val run3 = RegInit(Bool(), false.B)
+
   // status indicator
-  val status = RegInit(Bool(), false.B)
-  status := RegNext(!status)
-  io.leds(0) := status
+  // 合成時にはset_false_path注釈をつけたほうがいいかも
+  val statusInst = RegInit(UInt(8.W), 0.U)
+  statusInst := bf.io.inst
+  io.leds(0) := program
   io.leds(1) <> uart.io.txActive
   io.leds(2) <> uart.io.rxActive
   io.leds(3) <> bf.io.halted
+  io.triLed0 <> statusInst(2,0)
+  io.triLed1 <> statusInst(5,3)
+  io.triLed2 <> statusInst(7,6)
+  io.triLed3 <> bf.io.errorCode
+
   // physicall -> uart
   uart.io.tx <> io.uartTx
   uart.io.rx <> io.uartRx

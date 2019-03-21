@@ -25,6 +25,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
     val branchStackPtr = Output(UInt(branchStackMemWidth.W))
     val branchStackData = Output(UInt(instMemWidth.W))
     val halted = Output(Bool()) // program停止時にtrue
+    val errorCode = Output(UInt(3.W)) // halt時のステータスとか
 
     // stdin FIFO in
     val stdinData = Input(UInt(8.W)) // 標準入力
@@ -42,6 +43,8 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   io.programAck := programAck
   val halted = RegInit(Bool(), true.B)
   io.halted := halted
+  val errorCode = RegInit(UInt(4.W), 0.U)
+  io.errorCode := errorCode
   val stdinReady = RegInit(Bool(), false.B)
   io.stdinReady := stdinReady
   val stdinAck = RegInit(Bool(), true.B)
@@ -96,9 +99,15 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
       switch(inst) {
         is(0.U, '#'.U) { // \0か#挿入で停止できるようにした
           halted := true.B
+          errorCode := 1.U // branch dst_addr not found
         }
         is('['.U) {
-          branchJumpNest := (branchJumpNest + 1.U)
+          when(branchJumpNest === (branchStackMemWidth - 1).U) {
+            halted := true.B
+            errorCode := 2.U // branch stack overflow
+          } .otherwise {
+            branchJumpNest := (branchJumpNest + 1.U)
+          }
         }
         is(']'.U) {
           when(branchJumpNest > 0.U) {
@@ -115,18 +124,29 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
       switch(inst) {
         is(0.U, '#'.U) {
           halted := true.B
+          errorCode := 0.U // no error
         }
         is('>'.U) {
-          pc := (pc + 1.U)
-          inst := instMem.read(pc + 1.U)
-          stackPtr := (stackPtr + 1.U)
-          stackData := stackMem.read(stackPtr + 1.U)
+          when (stackPtr === (branchStackMemSize - 1).U) {
+            halted := true.B
+            errorCode := 3.U // stack addr overflow
+          } .otherwise {
+            pc := (pc + 1.U)
+            inst := instMem.read(pc + 1.U)
+            stackPtr := (stackPtr + 1.U)
+            stackData := stackMem.read(stackPtr + 1.U)
+          }
         }
         is('<'.U) {
-          pc := (pc + 1.U)
-          inst := instMem.read(pc + 1.U)
-          stackPtr := (stackPtr - 1.U)
-          stackData := stackMem.read(stackPtr - 1.U)
+          when (stackPtr === 0.U) {
+            halted := true.B
+            errorCode := 4.U // stack addr underflow
+          } .otherwise {
+            pc := (pc + 1.U)
+            inst := instMem.read(pc + 1.U)
+            stackPtr := (stackPtr - 1.U)
+            stackData := stackMem.read(stackPtr - 1.U)
+          }
         }
         is('+'.U) {
           stackMem.write(stackPtr, stackData + 1.U)
@@ -220,6 +240,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
   run2 := (run)
   when(halted) {
     when((!run2 && run) && !io.program) {
+      errorCode := 0.U // no error
       halted := (false.B)
     }
   }
