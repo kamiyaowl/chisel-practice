@@ -26,13 +26,13 @@ class DebugAccessPort(
     // !!! Arty A7 Hardware !!!
     // val buttons = Input(UInt(4.W)) // D9,C9,B9,B8(push buttons, active high)
     // 0-program, 1-run, 2-nc, 3-nc(topでreset)
-    val switches = Input(UInt(4.W)) // A8,C11,C10,A10,
+    val switches = Input(Vec(4, Bool())) // A8,C11,C10,A10,
 
-    val leds = Output(UInt(4.W)) // H5,J5,T9,T10(green leds)
-    val triLed0 = Output(UInt(3.W)) // G6,F6,E1(full color LED)
-    val triLed1 = Output(UInt(3.W)) // G3,J4,G4full color LED)
-    val triLed2 = Output(UInt(3.W)) // J3,J2,H4(full color LED)
-    val triLed3 = Output(UInt(3.W)) // K1,H6,K2(full color LED)
+    val leds = Output(Vec(4, Bool())) // H5,J5,T9,T10(green leds)
+    val triLed0 = Output(Vec(3, Bool())) // G6,F6,E1(full color LED)
+    val triLed1 = Output(Vec(3, Bool())) // G3,J4,G4full color LED)
+    val triLed2 = Output(Vec(3, Bool())) // J3,J2,H4(full color LED)
+    val triLed3 = Output(Vec(3, Bool())) // K1,H6,K2(full color LED)
   })
   val uart = Module(new UartTxRx(freq, baud))
   val bf = Module(new BrainfuckProcessor(instMemWidth, stackMemWidth, branchStackMemWidth))
@@ -52,13 +52,13 @@ class DebugAccessPort(
 
   // status indicator
   // 合成時にはset_false_path注釈をつけたほうがいいかも
-  val statusInst = RegInit(UInt(8.W), 0.U)
+  val statusInst = RegInit(UInt(8.W), 0.U) // 流石に遅いと嫌なのでラッチしてしまう
   statusInst := bf.io.inst
-  io.leds(0) <> chatterProgram.io.dout // TODO:ここのつなぎ方を工夫して
-  /*
+  io.leds(0) <> chatterProgram.io.dout
   io.leds(1) <> run
   // io.leds(2)  <> // とくに思いつかなかった
   io.leds(3) <> bf.io.halted
+  /*
   io.triLed0 <> statusInst(2,0)
   io.triLed1 <> statusInst(5,3)
   io.triLed2 <> statusInst(7,6)
