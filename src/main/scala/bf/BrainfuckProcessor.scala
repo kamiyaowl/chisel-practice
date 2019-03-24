@@ -130,7 +130,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
           errorCode := 0.U // no error
         }
         is('>'.U) {
-          when (stackPtr === (branchStackMemSize - 1).U) {
+          when (stackPtr === (stackMemSize - 1).U) {
             halted := true.B
             errorCode := 3.U // stack addr overflow
           } .otherwise {
