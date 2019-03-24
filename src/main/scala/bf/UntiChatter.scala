@@ -12,13 +12,12 @@ class UntiChatter(sysFreq: Double, captureFreq: Double = 100, averageWidth: Int 
     val dout = Output(Bool())
   })
   val duration: Int = (sysFreq / captureFreq).toInt
-  val halfDuration: Int = duration / 2
   val log2: Double => Double = (x: Double) => log10(x)/log10(2.0)
   val counterWidth: Int = ceil(log2(duration)).toInt + 1
   // とりあえずSysCLKでは早すぎるので分周する
   val counter = RegInit(UInt(counterWidth.W), 0.U)
   val trigger = RegInit(Bool(), false.B)
-  when(counter < halfDuration.U) {
+  when(counter < duration.U) {
     counter := counter + 1.U
     trigger := false.B
   } .otherwise {
