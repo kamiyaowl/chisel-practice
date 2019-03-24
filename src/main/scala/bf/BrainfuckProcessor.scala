@@ -105,7 +105,7 @@ class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branch
           errorCode := 1.U // branch dst_addr not found
         }
         is('['.U) {
-          when(branchJumpNest === (branchStackMemWidth - 1).U) {
+          when(branchJumpNest === (branchStackMemSize - 1).U) {
             halted := true.B
             errorCode := 2.U // branch stack overflow
           } .otherwise {
