@@ -40,15 +40,15 @@ class DebugAccessPort(
   // physical system control
   // val chatterButton0 = new UntiChatter(freq, captureFreq, averageWidth, isPositive)
   val chatterProgram = Module(new UntiChatter(freq, captureFreq, averageWidth, isPositive))
-  val chatterRun = Module(new UntiChatter(freq, captureFreq, averageWidth, isPositive))
   val program = Wire(Bool())
-  val run = Wire(Bool())
   io.switches(0) <> chatterProgram.io.din
-  io.switches(1) <> chatterRun.io.din
   program <> chatterProgram.io.dout
-  run <> chatterProgram.io.dout
+  bf.io.program <> program
+  val chatterRun = Module(new UntiChatter(freq, captureFreq, averageWidth, isPositive))
+  val run = Wire(Bool())
+  io.switches(1) <> chatterRun.io.din
+  run <> chatterRun.io.dout
   bf.io.run <> run
-  bf.io.program <> run
 
   // status indicator
   // 合成時にはset_false_path注釈をつけたほうがいいかも
