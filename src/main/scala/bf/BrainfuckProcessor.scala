@@ -272,6 +272,10 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
       programDelay := true.B
       instMem.write(programAddr, io.programData)
       programAddr := programAddr + 1.U // アドレスはインクリしておく
+
+      // for debug: 入力されたデータを垂れ流しておく
+      stdoutData := io.programData
+      stdoutValid := true.B
     }
   }
 
