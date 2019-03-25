@@ -78,7 +78,7 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
       // outReadyで受け側の準備はできている
       // emptyではないので、Ackがあったかまだ未送信であれば
       when(io.outAck | !outValid) {
-        // printf(p"[Fifo] [dequeue] data:$outData outPtr:$outPtr count:$count\n")
+        printf(p"[Fifo] [dequeue] data:${mem.read(outPtrNext)} outPtr:$outPtrNext count:$count\n")
         outData := mem.read(outPtrNext) // outPtr上は無効データ
         outPtr := outPtrNext
         outValid := true.B

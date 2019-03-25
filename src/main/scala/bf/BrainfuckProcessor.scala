@@ -261,13 +261,13 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
     // FIFO受付可能
     programReady := true.B
     // 有効データが来ていれば読み出してメモリを書き換える
-    when(io.programValid) {
+    when(io.programValid && !programAck) {
       printf(p"[program] Write programAddr:$programAddr data:${Character(io.programData)} (${io.programData})\n")
       programAck := (true.B)
       instMem.write(programAddr, io.programData)
       programAddr := programAddr + 1.U // アドレスはインクリしておく
     } .otherwise {
-      printf(p"[program] Wait programAddr:$programAddr data:${Character(io.programData)} (${io.programData})\n")
+      // printf(p"[program] Wait programAddr:$programAddr data:${Character(io.programData)} (${io.programData})\n")
       programAck := (false.B)
     }
   }
