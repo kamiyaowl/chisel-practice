@@ -10,7 +10,7 @@ import scala.math.pow
 // halt #
 // #size
 // instMemWidth: Mandelbrotは11451 -> 14bit
-// stackMemWidth : 本来は30000らしいが、Mandelbrotの実行結果より 930-> 10bit
+// stackMemWidth : 本来は30000(15bit)らしいが、Mandelbrotの実行結果より 930-> 10bitでもいける
 class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branchStackMemWidth: Int = 4) extends Module {
   val io = IO(new Bundle {
     // system
