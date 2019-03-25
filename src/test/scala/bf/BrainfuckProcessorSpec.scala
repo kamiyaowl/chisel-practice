@@ -35,7 +35,7 @@ class BrainfuckProcessorSpec extends ChiselFlatSpec {
           poke(c.io.program, true.B)
           poke(c.io.programData, src(i))
           poke(c.io.programValid, true.B)
-          step(1)
+          step(2)
           if (printDetail) {
             println(s"[Write Program][$i] addr:$i data:${peek(c.io.programData).charValue} stdout:${peek(c.io.stdoutData)}")
           }
@@ -91,7 +91,7 @@ class BrainfuckProcessorSpec extends ChiselFlatSpec {
   "Brainfuck" should "nested loop" in {
     // !をつくる
     val src = ">+++[<++++++++++>-]<+++>>++++++++++[<+++[<.>-]<+>>-]"
-    val dst = ((0 until 10).map(_ + '!').map(x => s"${x.toChar}" * 3).mkString)
+    val dst = (0 until 10).map(_ + '!').map(x => s"${x.toChar}" * 3).mkString
     println(dst)
 
     run(src, dst, false)

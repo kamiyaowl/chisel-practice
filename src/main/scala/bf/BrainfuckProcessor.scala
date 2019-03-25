@@ -80,8 +80,7 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
 
   // FIFO後処理
   when(stdinAck) { // メイン側はAckが下がるまで連射しない
-    //noinspection ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses
-    stdinAck := (false.B)
+    stdinAck := (false.B) // ここで2cyc目を消費するので、FIFOのValid2重読み問題は発生しない
   }
   when(stdoutValid) { // メイン側はvalidが下がるまで次を出力しないので
     when(io.stdoutAck) {
@@ -174,7 +173,6 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
           when(io.stdoutReady && !stdoutValid) {
             // 標準出力に追加
             printf(p"[stdout] ${Character(stackData)} $stackData\n")
-            //noinspection ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses
             stdoutData := (stackData)
             stdoutValid := (true.B)
 
@@ -254,21 +252,26 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
     }
   }
   // 非プログラム状態になければAddrは戦闘に戻しておく
+  val programDelay = RegInit(Bool(), false.B) // ack後に連射されないようにinvalidをまつ
   when(!io.program || !halted) {
     programAddr := 0.U
     programReady := false.B
+    programDelay := false.B
   } .otherwise {
     // FIFO受付可能
     programReady := true.B
     // 有効データが来ていれば読み出してメモリを書き換える
-    when(io.programValid && !programAck) {
+    when(programDelay) {
+      // ack後はvalidが一旦下がるのを待つ
+      programAck := false.B
+      programDelay := false.B
+    } .elsewhen(io.programValid) {
+      // ackを待っていないなら有効なときに取り込む
       printf(p"[program] Write programAddr:$programAddr data:${Character(io.programData)} (${io.programData})\n")
       programAck := (true.B)
+      programDelay := true.B
       instMem.write(programAddr, io.programData)
       programAddr := programAddr + 1.U // アドレスはインクリしておく
-    } .otherwise {
-      // printf(p"[program] Wait programAddr:$programAddr data:${Character(io.programData)} (${io.programData})\n")
-      programAck := (false.B)
     }
   }
 

@@ -10,10 +10,8 @@ class DebugAccessPortSpec extends ChiselFlatSpec {
   }
 
   "DAP" should "Hello world!" in {
-    // val src = ">+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-]<.>+++++++++++[<+++++>-]<.>++++++++[<+++>-]<.+++.------.--------.[-]>++++++++[<++++>-]<+.[-]++++++++++."
-    // val expect = "Hello world!"
-    val src = "++++++++++[>+<-]>++."
-    val expect = "!"
+    val src = ">+++++++++[<++++++++>-]<.>+++++++[<++++>-]<+.+++++++..+++.[-]>++++++++[<++++>-]<.>+++++++++++[<+++++>-]<.>++++++++[<+++>-]<.+++.------.--------.[-]>++++++++[<++++>-]<+.[-]++++++++++."
+    val expect = "Hello world!"
     val freq = 50e6
     val baud = 115200
     val duration = calcDuration(freq, baud)
@@ -61,7 +59,7 @@ class DebugAccessPortSpec extends ChiselFlatSpec {
 
         // run
         println(s"[Run]")
-        poke(c.io.switches(1), false.B) // run(edge: L->H)
+        poke(c.io.switches(1), true.B) // run(edge: L->H)
         step(1000)
         while(peek(c.io.leds(3)) == BigInt(0)) { // no halted
           step(1)

@@ -7,13 +7,13 @@ import chisel3.util._
 class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
   val io = IO(new Bundle {
     // input
-    val inData = Input(UInt(width.W))
+    val inData = Input(UInt(width.W)) //連続でValidなデータが来た場合も、かならず1cycのDelayが挿入される
     val inValid = Input(Bool())
-    val inReady = Output(Bool()) // full
+    val inReady = Output(Bool())
     val inAck = Output(Bool())
     // output
     val outData = Output(UInt(width.W))
-    val outValid = Output(Bool()) // not empty
+    val outValid = Output(Bool()) // Ackを受けた場合は一旦Validを下げる。受け側はAckを出した次のサイクル時点ではこれが間に合わないため読んではいけない
     val outReady = Input(Bool())
     val outAck = Input(Bool())
     // status
@@ -55,42 +55,54 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
   io.empty := empty
   io.full := full
   // in
-  when(!full) {
+  val inDelay = RegInit(Bool(), false.B) // trueのときは1サイクルまつ
+  when(inDelay) {
+    inDelay := false.B
+  } .elsewhen(!full) {
     when(io.inValid) {
       mem.write(inPtr, io.inData)
       inPtr := inPtrNext // overflow対策
       inReady := true.B
       inAck := true.B
+      inDelay := true.B
       // printf(p"[Fifo] [euqueue] data:${io.inData} inPtr:$inPtr count:$count\n")
     } .otherwise {
       // printf(p"[Fifo] [euqueue] nack count:$count\n")
       inReady := true.B
       inAck := false.B
+      inDelay := false.B
     }
   } .otherwise {
     inReady := false.B
     inAck := false.B
+    inDelay := false.B
   }
-// out
+  // out
+  val waitAck = RegInit(Bool(), false.B) // ackきたらvalid一回下げる
   when(!empty) {
     // readyになるまでは一切処置なし
     when(io.outReady) {
       // outReadyで受け側の準備はできている
-      // emptyではないので、Ackがあったかまだ未送信であれば
-      when(io.outAck | !outValid) {
+      when (!waitAck) {
         printf(p"[Fifo] [dequeue] data:${mem.read(outPtrNext)} outPtr:$outPtrNext count:$count\n")
         outData := mem.read(outPtrNext) // outPtr上は無効データ
         outPtr := outPtrNext
         outValid := true.B
+        waitAck := true.B
       } .otherwise {
-        // outAck = false && outValid = true
-        // つまり応答待ち
-        // printf(p"[Fifo] [dequeue] keep count:$count\n")
+        when(io.outAck) {
+          // 来たので一旦引っ込める(2重受信のバグの温床になってしまった)
+          printf(p"[Fifo] [dequeue] Ack Received\n")
+          outData := 0.U
+          outValid := false.B
+          waitAck := false.B
+        }
       }
     } .otherwise {
       // 受けが準備できていないらしい
       outData := 0.U
       outValid := false.B
+      waitAck := false.B
     }
   } .otherwise {
     // Ack以外は保持
@@ -98,6 +110,7 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
       // printf(p"[Fifo] [dequeue] negate(empty) count:$count\n")
       outData := 0.U
       outValid := false.B
+      waitAck := false.B
     }
   }
 }
