@@ -8,7 +8,10 @@ import scala.math.pow
 // 命令 +-><,.
 // 無視される \r\nxX[space]
 // halt #
-class BrainfuckProcessor(instMemWidth: Int = 16, stackMemWidth: Int = 16, branchStackMemWidth: Int = 4) extends Module {
+// #size
+// instMemWidth: Mandelbrotは11451 -> 14bit
+// stackMemWidth : 本来は30000らしいが、Mandelbrotの実行結果より 930-> 10bit
+class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branchStackMemWidth: Int = 4) extends Module {
   val io = IO(new Bundle {
     // system
     val run = Input(Bool()) // 実行時のトリガ

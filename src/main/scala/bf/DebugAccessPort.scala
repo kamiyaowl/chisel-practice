@@ -5,9 +5,9 @@ import chisel3._
 // Debug Access付きTopModule
 class DebugAccessPort(
    // bf core
-   instMemWidth: Int = 16, stackMemWidth: Int = 16, branchStackMemWidth: Int = 4,
+   instMemWidth: Int = 14, stackMemWidth: Int = 10, branchStackMemWidth: Int = 4,
    // uart
-   freq: Double = 100e6, baud: Double = 9600,
+   freq: Double = 50e6, baud: Double = 115200,
    // fifo
    depthWidth: Int = 4,
    // unti chattering
@@ -97,5 +97,5 @@ class DebugAccessPort(
 }
 
 object DebugAccessPort extends App {
-  chisel3.Driver.execute(args,()=>new DebugAccessPort())
+  chisel3.Driver.execute(Array("--target-dir", "bf"),()=>new DebugAccessPort())
 }
