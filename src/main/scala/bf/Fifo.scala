@@ -61,9 +61,9 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
       inPtr := inPtrNext // overflow対策
       inReady := true.B
       inAck := true.B
-      printf(p"[Fifo] [euqueue] data:${io.inData} inPtr:$inPtr count:$count\n")
+      // printf(p"[Fifo] [euqueue] data:${io.inData} inPtr:$inPtr count:$count\n")
     } .otherwise {
-      printf(p"[Fifo] [euqueue] nack count:$count\n")
+      // printf(p"[Fifo] [euqueue] nack count:$count\n")
       inReady := true.B
       inAck := false.B
     }
@@ -78,14 +78,14 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
       // outReadyで受け側の準備はできている
       // emptyではないので、Ackがあったかまだ未送信であれば
       when(io.outAck | !outValid) {
-        printf(p"[Fifo] [dequeue] data:$outData outPtr:$outPtr count:$count\n")
+        // printf(p"[Fifo] [dequeue] data:$outData outPtr:$outPtr count:$count\n")
         outData := mem.read(outPtrNext) // outPtr上は無効データ
         outPtr := outPtrNext
         outValid := true.B
       } .otherwise {
         // outAck = false && outValid = true
         // つまり応答待ち
-        printf(p"[Fifo] [dequeue] keep count:$count\n")
+        // printf(p"[Fifo] [dequeue] keep count:$count\n")
       }
     } .otherwise {
       // 受けが準備できていないらしい
@@ -95,7 +95,7 @@ class Fifo(width: Int = 8, depthWidth: Int = 4)  extends Module {
   } .otherwise {
     // Ack以外は保持
     when(io.outAck) {
-      printf(p"[Fifo] [dequeue] negate(empty) count:$count\n")
+      // printf(p"[Fifo] [dequeue] negate(empty) count:$count\n")
       outData := 0.U
       outValid := false.B
     }

@@ -55,7 +55,7 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   rx2 := rx1
   when(!rxActive) {
     when(rx2 && !rx1) {
-      printf(p"[Rx] Active\n")
+      // printf(p"[Rx] Active\n")
       rxActive := true.B
       rxTrigger := false.B
       rxDurationCounter := -halfDuration.S // このトリガがかかる時点では遷移直後なので半周期ずらす
@@ -80,10 +80,10 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
     when(rxTrigger) {
       rxCounter := rxCounter + 1.U
       rxBuf := (rxBuf >> 1).asUInt + Mux(io.rx, 0x80.U, 0x0.U)
-      printf(p"[Rx] [$rxCounter] rx:${io.rx} buf:$rxBuf\n")
+      // printf(p"[Rx] [$rxCounter] rx:${io.rx} buf:$rxBuf\n")
       // @stopbit
       when(rxCounter > 7.U) {
-        printf(p"[Rx] Received:$rxBuf\n")
+        // printf(p"[Rx] Received:$rxBuf\n")
         rxActive := false.B
         rxData := rxBuf
         rxValid := true.B
@@ -110,7 +110,7 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   when(!txActive) {
     when (io.txValid) {
       // データ取り込み、転送開始
-      printf(p"[Tx] Active $io.txData\n")
+      // printf(p"[Tx] Active $io.txData\n")
       txActive := true.B
       txBuf := io.txData
       txAck := true.B
@@ -132,14 +132,14 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
   // Startbit(0), d[0] ~ d[7], Stopbit(1)
   when(txActive) {
     when(txTrigger) {
-      printf(p"[Tx] [$txCounter] rx:$tx buf:${txBuf}\n")
+      // printf(p"[Tx] [$txCounter] rx:$tx buf:${txBuf}\n")
       when(txCounter === 0.U) {
-        printf(p"[Tx] startbit\n")
+        // printf(p"[Tx] startbit\n")
         tx := false.B
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 9.U) {
         // 1 ~ 8
-        printf(p"[Tx] data\n")
+        // printf(p"[Tx] data\n")
         tx := txBuf(txCounter - 1.U)
         txCounter := txCounter + 1.U
       } .elsewhen(txCounter < 10.U) {
@@ -149,7 +149,7 @@ class UartTxRx(freq: Double, baud: Double) extends Module {
         txCounter := txCounter + 1.U
       } .otherwise {
         // fin
-        printf(p"[Tx] fin\n")
+        // printf(p"[Tx] fin\n")
         txActive := false.B
         tx := true.B
         txCounter := 0.U

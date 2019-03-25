@@ -98,6 +98,7 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
   io.pc := pc
 
   when(!halted) {
+    printf(p"[process] branchJump:$branchJump pc:$pc inst:${Character(inst)} ($inst) stackPtr:$stackPtr stackData:$stackData\n")
     when(branchJump) {
       // '[' -> ']'への移動は優先順位が高い
       pc := (pc + 1.U)
@@ -172,6 +173,7 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
           // FIFOが受付可能でかつこちらがデータを出していないとき
           when(io.stdoutReady && !stdoutValid) {
             // 標準出力に追加
+            printf(p"[stdout] ${Character(stackData)} $stackData\n")
             //noinspection ScalaUnnecessaryParentheses,ScalaUnnecessaryParentheses
             stdoutData := (stackData)
             stdoutValid := (true.B)
@@ -246,6 +248,7 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
   run2 := (run)
   when(halted) {
     when((!run2 && run) && !io.program) {
+      printf(p"[run] Trigger!\n")
       errorCode := 0.U // no error
       halted := (false.B)
     }
@@ -259,10 +262,12 @@ class BrainfuckProcessor(instMemWidth: Int = 14, stackMemWidth: Int = 10, branch
     programReady := true.B
     // 有効データが来ていれば読み出してメモリを書き換える
     when(io.programValid) {
+      printf(p"[program] Write programAddr:$programAddr data:${Character(io.programData)} (${io.programData})\n")
       programAck := (true.B)
       instMem.write(programAddr, io.programData)
       programAddr := programAddr + 1.U // アドレスはインクリしておく
     } .otherwise {
+      printf(p"[program] Wait programAddr:$programAddr data:${Character(io.programData)} (${io.programData})\n")
       programAck := (false.B)
     }
   }
